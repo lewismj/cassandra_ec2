@@ -59,7 +59,7 @@ def parse_args():
         parser.add_argument('-d', "--authorized-address",  default="0.0.0.0/0",
                             help="Address to authorize on created security groups (default: 0.0.0.0/0).")
         parser.add_argument('-v', "--vpc-id", required=True, help="VPC id to launch instances in.")
-        parser.add_argument('-c', "--node_count", type=int, default=3, help="Number of nodes in the cluster.")
+        parser.add_argument('-c', "--node-count", type=int, default=3, help="Number of nodes in the cluster.")
         parser.add_argument('-a', "--action", required=True, help="Action to perform ('create' or 'destroy'.")
         parser.add_argument('-n', "--name", required=True, help="The name of the cluster.")
         parser.add_argument('-o', "--version", default="3.9", help="The version of Cassandra to deploy.")
@@ -305,8 +305,8 @@ def create_cluster(conn, args):
                 security_group_ids=[security_group.id],
                 instance_type="",
                 placement=args.zone,
-                min_count=1,
-                max_count=1,
+                min_count=args.node_count,
+                max_count=args.node_count,
                 block_device_map=block_map,
                 subnet_id=None,
                 placement_group=None,
@@ -333,11 +333,11 @@ def get_dns_names(instances, private_ips=False):
     dns_names = []
     for instance in instances:
         public_dns_name = instance.public_dns_name if not private_ips else instance.private_ip_address
-        public_ip_addr = instance.ip_address
+        private_ip_address = instance.private_ip_address
         if not public_dns_name:
             raise Exception("Failed to determine hostname of {0}".format(instance))
         else:
-            dns_names.append((public_dns_name, public_ip_addr))
+            dns_names.append((public_dns_name, private_ip_address))
     return dns_names
 
 
@@ -371,13 +371,13 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
 
     for dns in dns_names:
         public_name = dns[0]
-        public_ip = dns[1]
+        private_ip = dns[1]
 
         # minimal set of commands, need to change snitch etc...
         commands = [
             "tar -zxf {file}".format(file=short_file_name),
             "sed -i -e 's/Test Cluster/{name}/g' {dir}/conf/cassandra.yaml".format(name=args.name, dir=unpacked_dir),
-            "sed -i -e 's/localhost/{ip}/g' {dir}/conf/cassandra.yaml".format(ip=public_ip, dir=unpacked_dir),
+            "sed -i -e 's/localhost/{ip}/g' {dir}/conf/cassandra.yaml".format(ip=private_ip, dir=unpacked_dir),
             "sed -i -e 's/seeds: \"127.0.0.1\"/seeds: \"{seeds}\"/g' {dir}/conf/cassandra.yaml"
             .format(seeds=seeds, dir=unpacked_dir)
         ]

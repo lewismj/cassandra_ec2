@@ -3,6 +3,8 @@
 ### PhpStorm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
 
+.Ulysses-favorites.plist
+
 *.iml
 
 ## Directory-based project format:
