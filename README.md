@@ -1,7 +1,7 @@
 # Cassandra EC2
 This repository provides some simple Python scripts for creating an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster using script, without relying on DCOS or similar.
 
-I’ve taken some things from the [SparkEC2][1]project.
+I’ve taken some things from the [SparkEC2][1] project.
 
 *Under development, currently just the ‘create’ action is supported.*
 
