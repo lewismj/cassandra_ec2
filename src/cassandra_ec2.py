@@ -391,6 +391,13 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
             "sed -i -e 's/rpc_address: localhost/rpc_address: {ip}/g' {dir}/conf/cassandra.yaml"
             .format(ip=public_ip, dir=unpacked_dir),
 
+            # add in a broadcast address.
+            "echo \"broadcast_address: {ip} \" | tee {dir}/conf/cassandra.yaml"
+            .format(ip=public_ip, dir=unpacked_dir),
+
+            "echo \"data_file_directories:\n\t- /data/cassandra/data\"  | tee {dir}/conf/cassandra.yaml"
+            .format(dir=unpacked_dir),
+
             # put value for the seeds.
             "sed -i -e 's/seeds: \"127.0.0.1\"/seeds: \"{seeds}\"/g' {dir}/conf/cassandra.yaml"
             .format(seeds=seeds, dir=unpacked_dir),
@@ -398,8 +405,12 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
             # install java 8.
             "sudo yum -y install java-1.8.0; sudo yum -y remove java-1.7.0-openjdk",
 
+            # create directories.
+            "sudo mkdir -p /data/cassandra/data",
+
             # mount the storage used for storing data.
-            'sudo mkfs -t ext4 /dev/xvdt; sudo mkdir /data/cassandra; sudo mount /dev/xvdt /data/cassandra'
+            # ** n.b. Assumes just one disk atm. **
+            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data/cassandra'
         ]
         command = ";".join(commands)
         ssh(public_name, args, command)
