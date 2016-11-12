@@ -36,7 +36,6 @@ from clint.textui import progress
 import requests
 
 
-
 __author__ = 'lewismj@waioeka.com'
 
 
@@ -258,16 +257,17 @@ def create_cluster(conn, args):
 
     # set the inbound permission rules
     if len(security_group.rules) == 0:
-        if args.vpc_id is None:
-            security_group.authorize(src_group=security_group)
-        else:
-            security_group.authorize('tcp', 22, 22, args.authorized_address)
-            security_group.authorize('tcp', 8888, 8888, args.authorized_address)
-            security_group.authorize('tcp', 7000, 7000, args.authorized_address)
-            security_group.authorize('tcp', 7001, 7001, args.authorized_address)
-            security_group.authorize('tcp', 7199, 7199, args.authorized_address)
-            security_group.authorize('tcp', 9042, 9042, args.authorized_address)
-            security_group.authorize('tcp', 9160, 9160, args.authorized_address)
+        if __name__ == '__main__':
+            if args.vpc_id is None:
+                security_group.authorize(src_group=security_group)
+            else:
+                security_group.authorize('tcp', 22, 22, args.authorized_address)
+                security_group.authorize('tcp', 8888, 8888, args.authorized_address)
+                security_group.authorize('tcp', 7000, 7000, args.authorized_address)
+                security_group.authorize('tcp', 7001, 7001, args.authorized_address)
+                security_group.authorize('tcp', 7199, 7199, args.authorized_address)
+                security_group.authorize('tcp', 9042, 9042, args.authorized_address)
+                security_group.authorize('tcp', 9160, 9160, args.authorized_address)
     else:
         print("Security group already exists, skipping creation.")
 
@@ -334,10 +334,11 @@ def get_dns_names(instances, private_ips=False):
     for instance in instances:
         public_dns_name = instance.public_dns_name if not private_ips else instance.private_ip_address
         private_ip_address = instance.private_ip_address
+        public_ip_addr = instance.ip_address
         if not public_dns_name:
             raise Exception("Failed to determine hostname of {0}".format(instance))
         else:
-            dns_names.append((public_dns_name, private_ip_address))
+            dns_names.append((public_dns_name, private_ip_address, public_ip_addr))
     return dns_names
 
 
@@ -372,14 +373,33 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
     for dns in dns_names:
         public_name = dns[0]
         private_ip = dns[1]
+        public_ip = dns[2]
 
         # minimal set of commands, need to change snitch etc...
         commands = [
+            # Unpack tar file.
             "tar -zxf {file}".format(file=short_file_name),
+
+            # rename the cluster.
             "sed -i -e 's/Test Cluster/{name}/g' {dir}/conf/cassandra.yaml".format(name=args.name, dir=unpacked_dir),
-            "sed -i -e 's/localhost/{ip}/g' {dir}/conf/cassandra.yaml".format(ip=private_ip, dir=unpacked_dir),
+
+            # change the listen address.
+            "sed -i -e 's/listen_address: localhost/listen_address: {ip}/g' {dir}/conf/cassandra.yaml"
+            .format(ip=private_ip, dir=unpacked_dir),
+
+            # change the rpc and broadcast addresses.
+            "sed -i -e 's/rpc_address: localhost/rpc_address: {ip}/g' {dir}/conf/cassandra.yaml"
+            .format(ip=public_ip, dir=unpacked_dir),
+
+            # put value for the seeds.
             "sed -i -e 's/seeds: \"127.0.0.1\"/seeds: \"{seeds}\"/g' {dir}/conf/cassandra.yaml"
-            .format(seeds=seeds, dir=unpacked_dir)
+            .format(seeds=seeds, dir=unpacked_dir),
+
+            # install java 8.
+            "sudo yum -y install java-1.8.0; sudo yum -y remove java-1.7.0-openjdk",
+
+            # mount the storage used for storing data.
+            'sudo mkfs -t ext4 /dev/xvdt; sudo mkdir /data/cassandra; sudo mount /dev/xvdt /data/cassandra'
         ]
         command = ";".join(commands)
         ssh(public_name, args, command)
