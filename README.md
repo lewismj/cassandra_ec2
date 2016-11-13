@@ -1,5 +1,5 @@
 # Cassandra EC2
-This repository provides a Python script for creating and managing an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster directly on EC2 instances, without relying on DCOS or similar. The script is intended for development clusters only.  Do specify the authorised addresses flag. Or, manually reconfigure the security group inbound rules once cluster is up and running. The script will take AMI and EBS volume type & size as parameters. 
+This repository provides a Python script for creating and managing an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster directly on EC2 instances, without relying on DCOS or similar. The script is intended for development clusters only.  Do specify the authorised addresses flag. Or, manually reconfigure the security group once your cluster is up and running. The script will take AMI and EBS volume type & size as parameters. 
 The script is loosely based on the scripts for staring Spark found in the[SparkEC2][1] project.
 
 *Under development, currently just the ‘create’ action is supported.*
