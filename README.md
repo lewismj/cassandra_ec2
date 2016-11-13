@@ -20,6 +20,7 @@ Briefly, this script will:
 - download the desired version of Apache Cassandra.
 - copy Cassandra to each instance.
 - perform a number of ‘sed’ edits on each ‘cassandra.yaml’ file.
+- start the Cassandra process.
 
 ## Options
 - **-u --user** The SSH user you want to connect to your instances as (default: ec2-user).
@@ -145,7 +146,11 @@ nohup: ignoring input and appending output to ‘nohup.out’
 Connection to ec2-??-??-??-???.eu-central-1.compute.amazonaws.com closed.
 Cluster setup complete.
 waiheke:src lewismj$
+~~~
+
 Once setup, you can check that Cassandra is running using cqlsh:
+
+~~~
 waiheke:~ lewismj$ cqlsh ec2-??-??-??-???.eu-central-1.compute.amazonaws.com -u cassandra -p cassandra
 Connected to WaioekaDev1 at ec2-??-??-??-???.eu-central-1.compute.amazonaws.com:9042.
 [cqlsh 5.0.1 | Cassandra 3.9 | CQL spec 3.4.2 | Native protocol v4]
