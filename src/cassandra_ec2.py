@@ -410,11 +410,14 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
             "sudo yum -y install java-1.8.0; sudo yum -y remove java-1.7.0-openjdk",
 
             # create directories.
-            "sudo mkdir -p /data/cassandra/data",
+            "sudo mkdir -p /data",
 
             # mount the storage used for storing data.
             # ** n.b. Assumes just one disk atm. **
-            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data'
+            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data',
+
+            # create the mount point.
+            'sudo mkdir -p /data/cassandra/data",'
 
             # make sure Cassandra can write to the data location.
             'sudo chown -fR ec2-user /data/cassandra/',

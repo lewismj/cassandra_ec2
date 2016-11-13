@@ -1,20 +1,21 @@
 # Cassandra EC2
-This repository provides some simple Python scripts for creating an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster using script, without relying on DCOS or similar.
+This repository provides some simple Python scripts for creating an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster using script, without relying on DCOS or similar. Intended for spinning up development clusters only. Even for development purposes, do specify the authorised addresses flag. Or, manually reconfigure the security group inbound rules once cluster is up and running.
 
 I’ve taken some things from the [SparkEC2][1] project.
 
 *Under development, currently just the ‘create’ action is supported.*
 
-### Todo
+## Todo
 
-- [] implement the destroy command.
-- [] make the options a configuration file.
-- [] more customisation of the `cassandra.yaml` file is required (e.g. changing the Snitch setting etc…).
+- 1. Implement the destroy command.
+- 2. Make the options a configuration file.
+- 3. Allow more configuration, easily setup multi-region clusters.
 
-### Name
+
+## Name
 **`cassandra_ec2.py [options] `**
 
-### Description
+## Description
 Briefly, this script will:
 
 - create a security group.
@@ -24,7 +25,7 @@ Briefly, this script will:
 - copy Cassandra to each instance.
 - perform a number of ‘sed’ edits on each ‘cassandra.yaml’ file.
 
-### Options
+## Options
 
 - **-u --user** The SSH user you want to connect to your instances as (default: ec2-user).
 - **-r -—region** EC2 region name (default: eu-central-1).
@@ -42,7 +43,7 @@ Briefly, this script will:
 - **-n -—name** The name of the cluster.
 - **-o -—version** The version of Cassandra to deploy.
 
-### Configuration setup
+## Configuration setup
 At present a minimal set of changes are made to the `cassandra.yaml` file. These are implemented in the function shown below:
 ```python
 def unpack_and_edit_config_files(file_name, dns_names, args):
@@ -95,11 +96,14 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
             "sudo yum -y install java-1.8.0; sudo yum -y remove java-1.7.0-openjdk",
 
             # create directories.
-            "sudo mkdir -p /data/cassandra/data",
+            "sudo mkdir -p /data",
 
             # mount the storage used for storing data.
             # ** n.b. Assumes just one disk atm. **
-            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data'
+            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data',
+
+            # create the mount point.
+            'sudo mkdir -p /data/cassandra/data",'
 
             # make sure Cassandra can write to the data location.
             'sudo chown -fR ec2-user /data/cassandra/',
@@ -108,5 +112,10 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
             '{dir}/bin/cassandra'.format(dir=unpacked_dir)
         ]
         command = ";".join(commands)
-        ssh(public_name, args, command)```
+        ssh(public_name, args, command)
+```
+
+## Example Output
+
+
 [1]:	https://github.com/amplab/spark-ec2
