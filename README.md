@@ -1,32 +1,24 @@
 # Cassandra EC2
-This repository provides some simple Python scripts for creating an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster using script, without relying on DCOS or similar. Intended for spinning up development clusters only. Even for development purposes, do specify the authorised addresses flag. Or, manually reconfigure the security group inbound rules once cluster is up and running.
-
-I’ve taken some things from the [SparkEC2][1] project.
+This repository provides a Python script for creating and managing an Apache Cassandra cluster using EC2 instances. Useful if you want to spin up a development cluster directly on EC2 instances, without relying on DCOS or similar. The script is intended for development clusters only.  Do specify the authorised addresses flag. Or, manually reconfigure the security group inbound rules once cluster is up and running. The script will take AMI and EBS volume type & size as parameters. 
+The script is loosely based on the scripts for staring Spark found in the[SparkEC2][1] project.
 
 *Under development, currently just the ‘create’ action is supported.*
 
 ## Todo
-
 - 1. Implement the destroy command.
 - 2. Make the options a configuration file.
 - 3. Allow more configuration, easily setup multi-region clusters.
-
-
 ## Name
 **`cassandra_ec2.py [options] `**
-
 ## Description
 Briefly, this script will:
-
 - create a security group.
 - launch the desired number of instances, with storage.
 - wait for the cluster to start (i.e. can ‘ssh’ to the instances).
 - download the desired version of Apache Cassandra.
 - copy Cassandra to each instance.
 - perform a number of ‘sed’ edits on each ‘cassandra.yaml’ file.
-
 ## Options
-
 - **-u --user** The SSH user you want to connect to your instances as (default: ec2-user).
 - **-r -—region** EC2 region name (default: eu-central-1).
 - **-z -—zone** The availability zone to use (default: eu-central-1b).
@@ -102,10 +94,9 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
         print("Running Cassandra on node {dns}".format(dns=public_name))
         ssh(public_name, args, command="nohup /home/{user}/{dir}/bin/cassandra".format(user=args.user, dir=unpacked_dir))
 ```
-
+…
 ## Example Output
-
-...
+First run the script to create the cluster, many of the options have ‘development’ defaults.
 ~~~
 waiheke:src lewismj$ ./cassandra_ec2.py -r eu-central-1 -k amz1 -i ~/.aws/amz1.pem -m ami-f9619996 -v vpc-00x000xx -a create -n WaioekaDev1 -c 1
 Creating cluster ...  WaioekaDev1 in region eu-central-1
@@ -130,99 +121,6 @@ broadcast_address: 172.31.4.81
 data_file_directories:
 - /data/cassandra/data
 commitlog_directory: /data/cassandra/commitlog
-Loaded plugins: priorities, update-motd, upgrade-helper
-amzn-main/latest                                                                                                                       | 2.1 kB     00:00     
-amzn-updates/latest                                                                                                                    | 2.3 kB     00:00     
-Resolving Dependencies
---> Running transaction check
----> Package java-1.8.0-openjdk.x86_64 1:1.8.0.111-1.b15.25.amzn1 will be installed
---> Processing Dependency: java-1.8.0-openjdk-headless = 1:1.8.0.111-1.b15.25.amzn1 for package: 1:java-1.8.0-openjdk-1.8.0.111-1.b15.25.amzn1.x86_64
---> Running transaction check
----> Package java-1.8.0-openjdk-headless.x86_64 1:1.8.0.111-1.b15.25.amzn1 will be installed
-amzn-main/latest/filelists_db                                                                                                          | 5.1 MB     00:00     
-amzn-updates/latest/filelists_db                                                                                                       | 1.0 MB     00:00     
---> Processing Dependency: lksctp-tools for package: 1:java-1.8.0-openjdk-headless-1.8.0.111-1.b15.25.amzn1.x86_64
---> Running transaction check
----> Package lksctp-tools.x86_64 0:1.0.10-7.7.amzn1 will be installed
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-==============================================================================================================================================================
- Package                                        Arch                      Version                                       Repository                       Size
-==============================================================================================================================================================
-Installing:
- java-1.8.0-openjdk                             x86_64                    1:1.8.0.111-1.b15.25.amzn1                    amzn-updates                    227 k
-Installing for dependencies:
- java-1.8.0-openjdk-headless                    x86_64                    1:1.8.0.111-1.b15.25.amzn1                    amzn-updates                     39 M
- lksctp-tools                                   x86_64                    1.0.10-7.7.amzn1                              amzn-main                        89 k
-
-Transaction Summary
-==============================================================================================================================================================
-Install  1 Package (+2 Dependent packages)
-
-Total download size: 39 M
-Installed size: 102 M
-Downloading packages:
-(1/3): java-1.8.0-openjdk-1.8.0.111-1.b15.25.amzn1.x86_64.rpm                                                                          | 227 kB     00:00     
-(2/3): java-1.8.0-openjdk-headless-1.8.0.111-1.b15.25.amzn1.x86_64.rpm                                                                 |  39 MB     00:01     
-(3/3): lksctp-tools-1.0.10-7.7.amzn1.x86_64.rpm                                                                                        |  89 kB     00:00     
---------------------------------------------------------------------------------------------------------------------------------------------------------------
-Total                                                                                                                          19 MB/s |  39 MB  00:00:02     
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Installing : lksctp-tools-1.0.10-7.7.amzn1.x86_64                                                                                                       1/3 
-  Installing : 1:java-1.8.0-openjdk-headless-1.8.0.111-1.b15.25.amzn1.x86_64                                                                              2/3 
-  Installing : 1:java-1.8.0-openjdk-1.8.0.111-1.b15.25.amzn1.x86_64                                                                                       3/3 
-  Verifying  : lksctp-tools-1.0.10-7.7.amzn1.x86_64                                                                                                       1/3 
-  Verifying  : 1:java-1.8.0-openjdk-1.8.0.111-1.b15.25.amzn1.x86_64                                                                                       2/3 
-  Verifying  : 1:java-1.8.0-openjdk-headless-1.8.0.111-1.b15.25.amzn1.x86_64                                                                              3/3 
-
-Installed:
-  java-1.8.0-openjdk.x86_64 1:1.8.0.111-1.b15.25.amzn1                                                                                                        
-
-Dependency Installed:
-  java-1.8.0-openjdk-headless.x86_64 1:1.8.0.111-1.b15.25.amzn1                             lksctp-tools.x86_64 0:1.0.10-7.7.amzn1                            
-
-Complete!
-Loaded plugins: priorities, update-motd, upgrade-helper
-Existing lock /var/run/yum.pid: another copy is running as pid 2709.
-Another app is currently holding the yum lock; waiting for it to exit...
-  The other application is: yum
-    Memory :  41 M RSS (283 MB VSZ)
-    Started: Sun Nov 13 03:59:14 2016 - 00:00 ago
-    State  : Running, pid: 2709
-Resolving Dependencies
---> Running transaction check
----> Package java-1.7.0-openjdk.x86_64 1:1.7.0.111-2.6.7.2.68.amzn1 will be erased
---> Finished Dependency Resolution
-
-Dependencies Resolved
-
-==============================================================================================================================================================
- Package                                 Arch                        Version                                             Repository                      Size
-==============================================================================================================================================================
-Removing:
- java-1.7.0-openjdk                      x86_64                      1:1.7.0.111-2.6.7.2.68.amzn1                        installed                       90 M
-
-Transaction Summary
-==============================================================================================================================================================
-Remove  1 Package
-
-Installed size: 90 M
-Downloading packages:
-Running transaction check
-Running transaction test
-Transaction test succeeded
-Running transaction
-  Erasing    : 1:java-1.7.0-openjdk-1.7.0.111-2.6.7.2.68.amzn1.x86_64                                                                                     1/1 
-  Verifying  : 1:java-1.7.0-openjdk-1.7.0.111-2.6.7.2.68.amzn1.x86_64                                                                                     1/1 
-
-Removed:
-  java-1.7.0-openjdk.x86_64 1:1.7.0.111-2.6.7.2.68.amzn1                                                                                                      
-
 Complete!
 Connection to ec2-??-??-??-???.eu-central-1.compute.amazonaws.com closed.
 Setting up disks and running Cassandra
@@ -231,7 +129,7 @@ mke2fs 1.42.12 (29-Aug-2014)
 Creating filesystem with 2097152 4k blocks and 524288 inodes
 Filesystem UUID: f60a80ea-6144-4479-80f1-62d10b18a137
 Superblock backups stored on blocks: 
-	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632
+    32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632
 
 Allocating group tables: done                            
 Writing inode tables: done                            
@@ -245,6 +143,12 @@ nohup: ignoring input and appending output to ‘nohup.out’
 Connection to ec2-??-??-??-???.eu-central-1.compute.amazonaws.com closed.
 Cluster setup complete.
 waiheke:src lewismj$
+Once setup, you can check that Cassandra is running using cqlsh:
+waiheke:~ lewismj$ cqlsh ec2-??-??-??-???.eu-central-1.compute.amazonaws.com -u cassandra -p cassandra
+Connected to WaioekaDev1 at ec2-??-??-??-???.eu-central-1.compute.amazonaws.com:9042.
+[cqlsh 5.0.1 | Cassandra 3.9 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+cassandra@cqlsh> exit
 ~~~
 
 [1]:	https://github.com/amplab/spark-ec2
