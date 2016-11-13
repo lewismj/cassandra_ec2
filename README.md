@@ -8,8 +8,10 @@ The script is loosely based on the scripts for staring Spark found in the[SparkE
 - 1. Implement the destroy command.
 - 2. Make the options a configuration file.
 - 3. Allow more configuration, easily setup multi-region clusters.
+
 ## Name
 **`cassandra_ec2.py [options] `**
+
 ## Description
 Briefly, this script will:
 - create a security group.
@@ -18,6 +20,7 @@ Briefly, this script will:
 - download the desired version of Apache Cassandra.
 - copy Cassandra to each instance.
 - perform a number of ‘sed’ edits on each ‘cassandra.yaml’ file.
+
 ## Options
 - **-u --user** The SSH user you want to connect to your instances as (default: ec2-user).
 - **-r -—region** EC2 region name (default: eu-central-1).
@@ -94,7 +97,6 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
         print("Running Cassandra on node {dns}".format(dns=public_name))
         ssh(public_name, args, command="nohup /home/{user}/{dir}/bin/cassandra".format(user=args.user, dir=unpacked_dir))
 ```
-…
 ## Example Output
 First run the script to create the cluster, many of the options have ‘development’ defaults.
 ~~~
