@@ -364,7 +364,7 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
     short_file_name = file_name.split("/")[-1]
     unpacked_dir = "apache-cassandra-{version}".format(version=args.version)
 
-    num_seeds = min(len(dns_names), 3)
+    num_seeds = min(len(dns_names), 2)
     seed_list = []
     for i in range(0, num_seeds):
         seed_list.append(dns_names[i][1])
@@ -373,7 +373,6 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
     for dns in dns_names:
         public_name = dns[0]
         private_ip = dns[1]
-        public_ip = dns[2]
 
         # minimal set of commands, need to change snitch etc...
         commands = [
@@ -387,20 +386,25 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
             "sed -i -e 's/listen_address: localhost/listen_address: {ip}/g' {dir}/conf/cassandra.yaml"
             .format(ip=private_ip, dir=unpacked_dir),
 
-            # change the rpc and broadcast addresses.
+            # change the rpc addresses.
             "sed -i -e 's/rpc_address: localhost/rpc_address: {ip}/g' {dir}/conf/cassandra.yaml"
-            .format(ip=public_ip, dir=unpacked_dir),
+            .format(ip=private_ip, dir=unpacked_dir),
 
             # add in a broadcast address.
-            "echo \"broadcast_address: {ip} \" | tee {dir}/conf/cassandra.yaml"
-            .format(ip=public_ip, dir=unpacked_dir),
+            "echo \"broadcast_address: {ip} \" | tee -a {dir}/conf/cassandra.yaml"
+            .format(ip=private_ip, dir=unpacked_dir),
 
-            "echo \"data_file_directories:\n\t- /data/cassandra/data\"  | tee {dir}/conf/cassandra.yaml"
+            # change data file location.
+            "echo \"data_file_directories:\n- /data/cassandra/data\"  | tee -a {dir}/conf/cassandra.yaml"
             .format(dir=unpacked_dir),
 
             # put value for the seeds.
             "sed -i -e 's/seeds: \"127.0.0.1\"/seeds: \"{seeds}\"/g' {dir}/conf/cassandra.yaml"
             .format(seeds=seeds, dir=unpacked_dir),
+
+            # change the snitch.
+            "sed -i -e 's/endpoint_snitch: SimpleSnitch/endpoint_snitch: Ec2Snitch/g' {dir}/conf/cassandra.yaml"
+            .format(dir=unpacked_dir),
 
             # install java 8.
             "sudo yum -y install java-1.8.0; sudo yum -y remove java-1.7.0-openjdk",
@@ -410,7 +414,13 @@ def unpack_and_edit_config_files(file_name, dns_names, args):
 
             # mount the storage used for storing data.
             # ** n.b. Assumes just one disk atm. **
-            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data/cassandra'
+            'sudo mkfs -t ext4 /dev/xvdt; sudo mount /dev/xvdt /data'
+
+            # make sure Cassandra can write to the data location.
+            'sudo chown -fR ec2-user /data/cassandra/',
+
+            # run Cassandra.
+            '{dir}/bin/cassandra'.format(dir=unpacked_dir)
         ]
         command = ";".join(commands)
         ssh(public_name, args, command)
