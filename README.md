@@ -23,21 +23,21 @@ Briefly, this script will:
 - start the Cassandra process.
 
 ## Options
-- **-u --user** The SSH user you want to connect to your instances as (default: ec2-user).
-- **-r -—region** EC2 region name (default: eu-central-1).
-- **-z -—zone** The availability zone to use (default: eu-central-1b).
-- **-i -—identity-file** SSH private key 
-- **-k -—key-pair** The key-pair name to use on instances.
-- **-t -—instance-type** Instance type of instance to launch (default: m1.large).
-- **-m -—ami** Amazon machine image ID to use.
-- **-s -—ebs-vol-size** Size (in GB) of each EBS volume (default: 8GB).
-- **-e -—ebs-vol-type** EBS volume type, e.g. ‘gp2’ (default: standard).
-- **-d -—authorized-address** Address to authorise on created security groups (default: 0.0.0.0/0).
-- **-v -—vpc-id** VPC id of VPC to launch instance in.
-- **-c -—node-count** Number of nodes to create for the cluster.
-- **-a -—action** The action to perform (‘create’, ‘destroy’).
-- **-n -—name** The name of the cluster.
-- **-o -—version** The version of Cassandra to deploy.
+- ```-u --user``` The SSH user you want to connect to your instances as (default: ec2-user).
+- ```-r --region``` EC2 region name (default: eu-central-1).
+- ```-z --zone``` The availability zone to use (default: eu-central-1b).
+- ```-i --identity-file``` SSH private key 
+- ```-k --key-pair``` The key-pair name to use on instances.
+- ```-t --instance-type``` Instance type of instance to launch (default: m1.large).
+- ```-m --ami``` Amazon machine image ID to use.
+- ```-s --ebs-vol-size``` Size (in GB) of each EBS volume (default: 8GB).
+- ```-e --ebs-vol-type``` EBS volume type, e.g. ‘gp2’ (default: standard).
+- ```-d --authorized-address``` Address to authorise on created security groups (default: 0.0.0.0/0).
+- ```-v --vpc-id``` VPC id of VPC to launch instance in.
+- ```-c --node-count``` Number of nodes to create for the cluster.
+- ```-a --action``` The action to perform (‘create’, ‘destroy’).
+- ```-n --name``` The name of the cluster.
+- ```-o --version``` The version of Cassandra to deploy.
 
 ## Configuration setup
 At present a minimal set of changes are made to the `cassandra.yaml` file. These are implemented in the function shown below:
